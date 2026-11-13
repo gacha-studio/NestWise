@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>板取ちゃん</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-mark" aria-hidden="true">板</div>
+    <div>
+      <p class="eyebrow">WOOD CUTTING PLANNER</p>
+      <h1>板取ちゃん</h1>
+    </div>
+    <p class="header-note">入力内容はこの画面内だけで扱います</p>
+  </header>
+
+  <main class="page-shell">
+    <div class="intro-row">
+      <div>
+        <h2>材料と部品を入力</h2>
+        <p>板材の寸法・枚数、切り出す部品、板取り条件を入力してください。</p>
+      </div>
+      <button class="button button-quiet" id="newCalculation" type="button">新規計算</button>
+    </div>
+
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+    <form id="plannerForm" novalidate>
+      <section class="card material-card" aria-labelledby="materialHeading">
+        <div class="section-heading">
+          <div class="step-badge">01</div>
+          <div><h3 id="materialHeading">板材</h3><p>使用する板の大きさと用意できる枚数</p></div>
+        </div>
+        <div class="field-grid three-columns">
+          <label class="field"><span>板幅 <small>mm</small></span><input name="boardWidth" type="number" min="1" step="1" inputmode="numeric" required></label>
+          <label class="field"><span>板高さ <small>mm</small></span><input name="boardHeight" type="number" min="1" step="1" inputmode="numeric" required></label>
+          <label class="field"><span>用意できる枚数 <small>枚</small></span><input name="boardCount" type="number" min="1" step="1" inputmode="numeric" required></label>
+        </div>
+      </section>
+
+      <section class="card parts-card" aria-labelledby="partsHeading">
+        <div class="section-heading section-heading-between">
+          <div class="heading-with-badge"><div class="step-badge">02</div><div><h3 id="partsHeading">部品</h3><p>同じ寸法の部品は本数をまとめて入力できます</p></div></div>
+          <button class="button button-outline" id="addPart" type="button"><span aria-hidden="true">＋</span> 部品を追加</button>
+        </div>
+        <div class="parts-table-wrap">
+          <table class="parts-table">
+            <thead><tr><th scope="col">幅 <small>mm</small></th><th scope="col">高さ <small>mm</small></th><th scope="col">本数</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead>
+            <tbody id="partsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card settings-card" aria-labelledby="settingsHeading">
+        <div class="section-heading">
+          <div class="step-badge">03</div>
+          <div><h3 id="settingsHeading">板取り設定</h3><p>Access版と同じ切りしろ・板端余白の扱いです</p></div>
+        </div>
+        <div class="field-grid two-columns">
+          <label class="field"><span>ノコ刃 <small>mm</small></span><input name="kerf" type="number" min="0" step="1" inputmode="numeric" required><span class="field-hint">部品同士の間に取る幅</span></label>
+          <label class="field"><span>板端余白 <small>mm</small></span><input name="edgeMargin" type="number" min="0" step="1" inputmode="numeric" required><span class="field-hint">Access版と同じく右端・下端に適用</span></label>
+        </div>
+      </section>
+
+      <div class="calculate-row">
+        <p>計算後も入力を編集して、再計算できます。</p>
+        <button class="button button-primary" type="submit"><span aria-hidden="true">▦</span> 板取り計算</button>
+      </div>
+    </form>
+
+    <section id="results" class="results" aria-labelledby="resultsHeading" hidden>
+      <div class="results-title-row">
+        <div><p class="eyebrow">CALCULATION RESULT</p><h2 id="resultsHeading">計算結果</h2></div>
+        <button id="printBoard" class="button button-outline print-button" type="button">この板を印刷</button>
+      </div>
+      <div id="summary" class="summary-grid"></div>
+      <div id="unplacedPanel" class="unplaced-panel" hidden></div>
+
+      <section class="card diagram-card" aria-labelledby="diagramHeading">
+        <div class="diagram-heading">
+          <div><h3 id="diagramHeading">切断図</h3><p id="boardCaption" class="muted"></p></div>
+          <div class="board-navigation"><button id="previousBoard" class="icon-button" type="button" aria-label="前の板">←</button><span id="boardCounter"></span><button id="nextBoard" class="icon-button" type="button" aria-label="次の板">→</button></div>
+        </div>
+        <div class="diagram-layout">
+          <div class="svg-wrap"><svg id="boardSvg" role="img" aria-labelledby="svgTitle svgDescription"></svg></div>
+          <aside class="board-facts"><h4>この板の情報</h4><dl id="boardFacts"></dl></aside>
+        </div>
+        <div class="diagram-legend"><span><i class="legend-part"></i>切り出す部品</span><span><i class="legend-boundary"></i>板端余白の境界（右・下）</span><span class="legend-note">図は板の寸法比に合わせて表示</span></div>
+      </section>
+      <p class="temporary-note">結果はこの画面を閉じると消えます。「新規計算」で入力と結果を初期化します。</p>
+    </section>
+
+    <div id="emptyResults" class="empty-results"><span class="empty-icon" aria-hidden="true">▧</span><p>計算結果はここに表示されます</p></div>
+  </main>
+  <footer><span>板取ちゃん</span><span>入力・計算結果は端末内の画面上だけに保持</span></footer>
+</body>
+</html>
