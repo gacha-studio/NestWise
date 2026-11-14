@@ -7,16 +7,70 @@ const emptyResults = document.querySelector("#emptyResults");
 let currentResult = null;
 let currentBoardIndex = 0;
 let nextPartId = 1;
+const draftStorageKey = "itadorityan.input.v1";
+const boardInputNames = ["boardWidth", "boardHeight", "boardCount", "kerf", "edgeMargin"];
+
+function saveInputDraft() {
+  const draft = {
+    version: 1,
+    board: Object.fromEntries(boardInputNames.map((name) => [name, form.elements.namedItem(name).value])),
+    parts: [...partsBody.rows].map((row) => ({
+      width: row.querySelector('[name="partWidth"]').value,
+      height: row.querySelector('[name="partHeight"]').value,
+      count: row.querySelector('[name="partCount"]').value,
+    })),
+  };
+  try {
+    localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+    return true;
+  } catch {
+    message.textContent = "このブラウザーでは入力を保存できません。画面を閉じると入力が消える場合があります。";
+    message.hidden = false;
+    return false;
+  }
+}
+
+function restoreInputDraft() {
+  try {
+    const raw = localStorage.getItem(draftStorageKey);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    if (draft.version !== 1 || !draft.board || !Array.isArray(draft.parts) || draft.parts.length === 0 || draft.parts.some((part) => !part || typeof part !== "object")) return;
+    const safeValue = (value) => typeof value === "string" && /^\d*$/.test(value) ? value : "";
+    for (const name of boardInputNames) {
+      form.elements.namedItem(name).value = safeValue(draft.board[name]);
+    }
+    partsBody.replaceChildren();
+    nextPartId = 1;
+    for (const part of draft.parts) {
+      addPartRow({ width: safeValue(part.width), height: safeValue(part.height), count: safeValue(part.count) });
+    }
+  } catch {
+    // 保存領域が使えない場合や保存データが壊れている場合は空の入力で開始する。
+  }
+}
+
+function clearInputDraft() {
+  try {
+    localStorage.removeItem(draftStorageKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function addPartRow(values = {}) {
   const id = nextPartId++;
   const row = document.createElement("tr");
   row.dataset.partId = String(id);
   row.innerHTML = `
-    <td><label class="sr-only" for="part-width-${id}">部品の幅 mm</label><input id="part-width-${id}" name="partWidth" type="number" min="1" step="1" inputmode="numeric" value="${values.width ?? ""}" required></td>
-    <td><label class="sr-only" for="part-height-${id}">部品の高さ mm</label><input id="part-height-${id}" name="partHeight" type="number" min="1" step="1" inputmode="numeric" value="${values.height ?? ""}" required></td>
-    <td><label class="sr-only" for="part-count-${id}">部品の本数</label><input id="part-count-${id}" name="partCount" type="number" min="1" step="1" inputmode="numeric" value="${values.count ?? ""}" required></td>
+    <td><label class="sr-only" for="part-width-${id}">部品の幅 mm</label><input id="part-width-${id}" name="partWidth" type="number" min="1" step="1" inputmode="numeric" required></td>
+    <td><label class="sr-only" for="part-height-${id}">部品の高さ mm</label><input id="part-height-${id}" name="partHeight" type="number" min="1" step="1" inputmode="numeric" required></td>
+    <td><label class="sr-only" for="part-count-${id}">部品の本数</label><input id="part-count-${id}" name="partCount" type="number" min="1" step="1" inputmode="numeric" required></td>
     <td><button class="remove-part" type="button" aria-label="この部品行を削除">×</button></td>`;
+  row.querySelector('[name="partWidth"]').value = values.width ?? "";
+  row.querySelector('[name="partHeight"]').value = values.height ?? "";
+  row.querySelector('[name="partCount"]').value = values.count ?? "";
   partsBody.append(row);
 }
 
@@ -250,10 +304,10 @@ function renderBoard() {
     const color = palette[index % palette.length];
     const fontSize = Math.max(9, Math.min(48, Math.min(width, height) * 0.032, Math.min(part.width, part.height) * 0.22));
     const leftInset = fontSize * 0.55;
-    const labels = `<text x="${part.x + part.width / 2}" y="${part.y + fontSize * 1.35}" text-anchor="middle" fill="#211a2b" font-size="${fontSize}" font-weight="600">${format(part.width)}</text><text x="${part.x + leftInset}" y="${part.y + part.height / 2 + fontSize * 0.35}" text-anchor="start" fill="#211a2b" font-size="${fontSize}" font-weight="600">${format(part.height)}</text>`;
+    const labels = `<text x="${part.x + part.width / 2}" y="${part.y + fontSize * 1.35}" text-anchor="middle" fill="#ffffff" font-size="${fontSize}" font-weight="600">${format(part.width)}</text><text x="${part.x + leftInset}" y="${part.y + part.height / 2 + fontSize * 0.35}" text-anchor="start" fill="#ffffff" font-size="${fontSize}" font-weight="600">${format(part.height)}</text>`;
     return `<g><title>${format(part.width)} × ${format(part.height)} mm${part.rotated ? "（回転）" : ""}</title><rect x="${part.x}" y="${part.y}" width="${part.width}" height="${part.height}" fill="${color}" stroke="#ffffff" stroke-width="${Math.max(2, Math.min(width, height) * .003)}"/>${labels}</g>`;
   }).join("");
-  const boundary = edgeMargin > 0 ? `<line x1="${width - edgeMargin}" y1="0" x2="${width - edgeMargin}" y2="${height}" stroke="#a46f36" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/><line x1="0" y1="${height - edgeMargin}" x2="${width}" y2="${height - edgeMargin}" stroke="#a46f36" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/>` : "";
+  const boundary = edgeMargin > 0 ? `<line x1="${width - edgeMargin}" y1="0" x2="${width - edgeMargin}" y2="${height}" stroke="#9b79bd" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/><line x1="0" y1="${height - edgeMargin}" x2="${width}" y2="${height - edgeMargin}" stroke="#9b79bd" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/>` : "";
   svg.innerHTML = `<title id="svgTitle">板 ${sheet.number} の切断図</title><desc id="svgDescription">${width} mm × ${height} mm の板に ${sheet.placements.length} 個の部品を配置</desc><rect x="0" y="0" width="${width}" height="${height}" rx="3" fill="#f0eaf8" stroke="#55486b" stroke-width="${Math.max(3, Math.min(width, height) * .004)}"/>${boundary}${parts}`;
   document.querySelector("#boardCounter").textContent = `板 ${sheet.number} / ${currentResult.boards.length}`;
   document.querySelector("#boardCaption").textContent = `${format(width)} × ${format(height)} mm　・　${sheet.placements.length} ピース`;
@@ -304,12 +358,13 @@ form.addEventListener("input", (event) => {
   if (event.target.matches("input")) {
     invalidateResults();
     message.hidden = true;
+    saveInputDraft();
   }
 });
-
 document.querySelector("#addPart").addEventListener("click", () => {
   addPartRow();
   invalidateResults();
+  saveInputDraft();
   partsBody.lastElementChild.querySelector("input").focus();
 });
 partsBody.addEventListener("click", (event) => {
@@ -322,8 +377,8 @@ partsBody.addEventListener("click", (event) => {
   }
   button.closest("tr").remove();
   invalidateResults();
+  saveInputDraft();
 });
-
 document.querySelector("#previousBoard").addEventListener("click", () => {
   if (currentBoardIndex > 0) { currentBoardIndex -= 1; renderBoard(); }
 });
@@ -332,14 +387,20 @@ document.querySelector("#nextBoard").addEventListener("click", () => {
 });
 document.querySelector("#printBoard").addEventListener("click", () => window.print());
 document.querySelector("#newCalculation").addEventListener("click", () => {
+  const cleared = clearInputDraft();
   form.reset();
   partsBody.innerHTML = "";
   nextPartId = 1;
   addPartRow();
   invalidateResults();
-  message.hidden = true;
+  message.hidden = cleared;
+  if (!cleared) message.textContent = "保存データを消去できませんでした。ブラウザーの保存設定を確認してください。";
   document.querySelector('[name="boardWidth"]').focus();
 });
-
 addPartRow();
+restoreInputDraft();
+
+
+
+
 
