@@ -33,19 +33,19 @@
       <section class="card material-card" aria-labelledby="materialHeading">
         <div class="section-heading">
           <div class="step-badge">01</div>
-          <div><h3 id="materialHeading">板材</h3><p>使用する板の大きさと用意できる枚数</p></div>
+          <div><h3 id="materialHeading">板材</h3><p>使用できる板材をすべて入力してください</p></div>
         </div>
-        <div class="field-grid three-columns">
-          <label class="field"><span>板幅 <small>mm</small></span><input name="boardWidth" type="number" min="1" step="1" inputmode="numeric" required></label>
-          <label class="field"><span>板高さ <small>mm</small></span><input name="boardHeight" type="number" min="1" step="1" inputmode="numeric" required></label>
-          <label class="field"><span>用意できる枚数 <small>枚</small></span><input name="boardCount" type="number" min="1" step="1" inputmode="numeric" required></label>
+        <div class="parts-table-wrap">
+          <table class="parts-table materials-table">
+            <thead><tr><th scope="col">板幅 <small>mm</small></th><th scope="col">板高さ <small>mm</small></th><th scope="col">用意できる枚数</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead>
+            <tbody id="materialsBody"></tbody>
+          </table>
         </div>
+        <div class="card-add-row"><button class="button button-outline" id="addMaterial" type="button"><span aria-hidden="true">＋</span> 板材を追加</button></div>
       </section>
-
       <section class="card parts-card" aria-labelledby="partsHeading">
-        <div class="section-heading section-heading-between">
+        <div class="section-heading">
           <div class="heading-with-badge"><div class="step-badge">02</div><div><h3 id="partsHeading">部品</h3><p>同じ寸法の部品は本数をまとめて入力できます</p></div></div>
-          <button class="button button-outline" id="addPart" type="button"><span aria-hidden="true">＋</span> 部品を追加</button>
         </div>
         <div class="parts-table-wrap">
           <table class="parts-table">
@@ -53,8 +53,8 @@
             <tbody id="partsBody"></tbody>
           </table>
         </div>
+        <div class="card-add-row"><button class="button button-outline" id="addPart" type="button"><span aria-hidden="true">＋</span> 部品を追加</button></div>
       </section>
-
       <section class="card settings-card" aria-labelledby="settingsHeading">
         <div class="section-heading">
           <div class="step-badge">03</div>
@@ -78,6 +78,7 @@
         <button id="printBoard" class="button button-outline print-button" type="button">この板を印刷</button>
       </div>
       <div id="summary" class="summary-grid"></div>
+      <p id="searchNote" class="search-note" hidden></p>
       <div id="unplacedPanel" class="unplaced-panel" hidden></div>
 
       <section class="card diagram-card" aria-labelledby="diagramHeading">
@@ -89,7 +90,7 @@
           <div class="svg-wrap"><svg id="boardSvg" role="img" aria-labelledby="svgTitle svgDescription"></svg></div>
           <aside class="board-facts"><h4>この板の情報</h4><dl id="boardFacts"></dl></aside>
         </div>
-        <div class="diagram-legend"><span><i class="legend-part"></i>切り出す部品</span><span><i class="legend-boundary"></i>板端余白の境界（右・下）</span><span class="legend-note">図は板の寸法比に合わせて表示</span></div>
+        <div class="diagram-legend"><span><i class="legend-part"></i>切り出す部品</span><span><i class="legend-boundary"></i>板端余白の境界（右・下）</span><span class="legend-note">部品をタップすると90度回転し、同じ板の中で詰め直します。</span></div>
       </section>
       <p class="temporary-note">入力はこのブラウザーに保存され、計算結果は画面を閉じると消えます。「新規計算」で両方を消去します。</p>
     </section>
@@ -99,4 +100,5 @@
   <footer><span>板取ちゃん</span><span>入力はブラウザーに保存・計算結果は画面上だけに保持</span></footer>
 </body>
 </html>
+
 
