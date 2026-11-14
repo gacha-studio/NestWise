@@ -1,4 +1,4 @@
-const palette = ["#297a5d", "#4777a8", "#ba7139", "#8863a8", "#bd5f57", "#368c8b", "#798a3c", "#bc668c", "#5684a2", "#9b7741"];
+﻿const palette = ["#7655a6", "#53649a", "#a3577e", "#976243", "#66549a", "#407d82", "#7c713b", "#985f8b", "#4f7894", "#836b50"];
 const form = document.querySelector("#plannerForm");
 const partsBody = document.querySelector("#partsBody");
 const message = document.querySelector("#message");
@@ -248,12 +248,13 @@ function renderBoard() {
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   const parts = sheet.placements.map((part, index) => {
     const color = palette[index % palette.length];
-    const fontSize = Math.max(12, Math.min(width, height) * 0.032);
-    const secondLine = part.rotated ? `<text x="${part.x + part.width / 2}" y="${part.y + part.height / 2 + fontSize * 1.3}" text-anchor="middle" fill="white" font-size="${fontSize * .68}">回転</text>` : "";
-    return `<g><title>${format(part.width)} × ${format(part.height)} mm${part.rotated ? "（回転）" : ""}</title><rect x="${part.x}" y="${part.y}" width="${part.width}" height="${part.height}" fill="${color}" stroke="#ffffff" stroke-width="${Math.max(2, Math.min(width, height) * .003)}"/><text x="${part.x + part.width / 2}" y="${part.y + part.height / 2 + fontSize * .35}" text-anchor="middle" fill="#fff" font-size="${fontSize}" font-weight="700">${format(part.width)} × ${format(part.height)}</text>${secondLine}</g>`;
+    const fontSize = Math.max(9, Math.min(48, Math.min(width, height) * 0.032, Math.min(part.width, part.height) * 0.22));
+    const leftInset = fontSize * 0.55;
+    const labels = `<text x="${part.x + part.width / 2}" y="${part.y + fontSize * 1.35}" text-anchor="middle" fill="#211a2b" font-size="${fontSize}" font-weight="600">${format(part.width)}</text><text x="${part.x + leftInset}" y="${part.y + part.height / 2 + fontSize * 0.35}" text-anchor="start" fill="#211a2b" font-size="${fontSize}" font-weight="600">${format(part.height)}</text>`;
+    return `<g><title>${format(part.width)} × ${format(part.height)} mm${part.rotated ? "（回転）" : ""}</title><rect x="${part.x}" y="${part.y}" width="${part.width}" height="${part.height}" fill="${color}" stroke="#ffffff" stroke-width="${Math.max(2, Math.min(width, height) * .003)}"/>${labels}</g>`;
   }).join("");
   const boundary = edgeMargin > 0 ? `<line x1="${width - edgeMargin}" y1="0" x2="${width - edgeMargin}" y2="${height}" stroke="#a46f36" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/><line x1="0" y1="${height - edgeMargin}" x2="${width}" y2="${height - edgeMargin}" stroke="#a46f36" stroke-width="${Math.max(2, Math.min(width, height) * .002)}" stroke-dasharray="${Math.max(10, Math.min(width, height) * .018)} ${Math.max(7, Math.min(width, height) * .012)}"/>` : "";
-  svg.innerHTML = `<title id="svgTitle">板 ${sheet.number} の切断図</title><desc id="svgDescription">${width} mm × ${height} mm の板に ${sheet.placements.length} 個の部品を配置</desc><rect x="0" y="0" width="${width}" height="${height}" rx="3" fill="#e8eee8" stroke="#35463d" stroke-width="${Math.max(3, Math.min(width, height) * .004)}"/>${boundary}${parts}`;
+  svg.innerHTML = `<title id="svgTitle">板 ${sheet.number} の切断図</title><desc id="svgDescription">${width} mm × ${height} mm の板に ${sheet.placements.length} 個の部品を配置</desc><rect x="0" y="0" width="${width}" height="${height}" rx="3" fill="#f0eaf8" stroke="#55486b" stroke-width="${Math.max(3, Math.min(width, height) * .004)}"/>${boundary}${parts}`;
   document.querySelector("#boardCounter").textContent = `板 ${sheet.number} / ${currentResult.boards.length}`;
   document.querySelector("#boardCaption").textContent = `${format(width)} × ${format(height)} mm　・　${sheet.placements.length} ピース`;
   const remains = edgeRemains(currentResult.board, sheet.placements);
@@ -341,3 +342,4 @@ document.querySelector("#newCalculation").addEventListener("click", () => {
 });
 
 addPartRow();
+
