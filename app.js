@@ -11,7 +11,7 @@ let nextPartId = 1;
 let calculationToken = 0;
 const draftStorageKey = "itadorityan.input.v1";
 const settingInputNames = ["kerf", "edgeMargin"];
-const optimizerTimeLimitMs = 5000;
+const optimizerTimeLimitMs = 15000;
 let nextMaterialId = 1;
 
 function saveInputDraft() {
@@ -546,7 +546,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   const token = ++calculationToken;
-  message.textContent = "板材の組み合わせを探索しています（最大5秒）…";
+  message.textContent = "板材の組み合わせを探索しています（最大15秒）…";
   message.hidden = false;
   form.querySelectorAll("input, button").forEach((control) => { control.disabled = true; });
   const newCalculationButton = document.querySelector("#newCalculation");
